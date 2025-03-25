@@ -78,6 +78,21 @@ pushd "$H3_SRC_DIR" || badexit
     git checkout -q tags/"$H3_VERSION"
 
     echo Copying source files into working directory
-    cp -R ./src/h3lib/lib/ "$CWD"/Ch3
-    cp -R ./src/h3lib/include/ "$CWD"/Ch3/include
+    pushd ./src/h3lib/lib/ || badexit
+        for f in *.c; do
+            sed -E 's/#include "(.*)"/#include "h3_\1"/; s/#include <faceijk.h>/ /' "$f" > "$CWD/h3_$f" || badexit
+        done
+    popd || badexit
+
+    echo Copying header files into working directory
+    pushd ./src/h3lib/include/ || badexit
+        for f in *.h; do
+            sed -E 's/#include "(.*)"/#include "h3_\1"/' "$f" > "$CWD/h3_$f" || badexit
+        done
+    popd || badexit
+
+    echo Copying api header file into working directory
+    pushd ./src/h3lib/include/ || badexit
+        sed -E 's/#include "(.*)"/#include "h3_\1"/' "h3api.h.in" > "$CWD/h3_h3api.h" || badexit
+    popd || badexit
 popd || badexit
